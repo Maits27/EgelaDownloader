@@ -1,7 +1,6 @@
 import getpass
 import sys
 import urllib
-from time import sleep
 
 import requests
 from bs4 import BeautifulSoup
@@ -12,6 +11,7 @@ pasahitza = ""
 cookie = ""
 token = ""
 uri= ""
+pdfkop=0
 
 def datuakEskatu():
     global erabiltzailea
@@ -26,8 +26,32 @@ def datuakEskatu():
         print("ERROR! Erabilera: python pdfDownloader.py erabiltzailea \"Izena abizena\"")
         exit(0)
 
+
+def irakasgaiaEskatu():
+    irakasgaia = input("Sartu bilatzen ari zaren irakasgaiaren izena: ")
+    return irakasgaia
+
+
+def lortuIrakasgaiUri(erantzuna):
+    global uri
+
+    orria = BeautifulSoup(erantzuna, 'html.parser')
+    kurtso_zerrenda = orria.find_all('a', {'class': 'ehu-visible'})
+    aurkitutaWS = False
+    irakasgaia = "Web Sistemak"
+    #irakasgaia= irakasgaiaEskatu()
+    for kurtso in kurtso_zerrenda:
+        if irakasgaia.lower() in str(kurtso).lower():
+        #if "Web Sistemak" in kurtso:
+            uri = kurtso['href']
+            aurkitutaWS=True
+
+    if not aurkitutaWS:
+        print("EZ DA AURKITU "+irakasgaia+" IRAKASGAIA. Saiatu izen osoa sartzen")
+        exit(400)
+
+
 def eskaera1():
-    global cookie
     global token
     global uri
 
@@ -51,11 +75,8 @@ def eskaera1():
 
 
 def eskaera2():
-    global cookie
-    global token
-    global pasahitza
-    global erabiltzailea
     global uri
+    global cookie
 
     metodoa = 'POST'
     # Python "hiztegi" baten moduan adierazten dira goiburuak
@@ -74,6 +95,9 @@ def eskaera2():
 
 
 def eskaera3():
+    global uri
+    global cookie
+
     metodoa = 'GET'
     # Python "hiztegi" baten moduan adierazten dira goiburuak
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
@@ -88,6 +112,9 @@ def eskaera3():
 
 
 def eskaera4():
+    global uri
+    global cookie
+
     metodoa = 'GET'
     # Python "hiztegi" baten moduan adierazten dira goiburuak
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
@@ -100,8 +127,62 @@ def eskaera4():
     printeatuEskaera(metodoa, uri, edukia)
     printeatuErantzuna(response)
 
+    lortuIrakasgaiUri(response.content)
 
 
+#--------------------------BEHIN EGELARA SARTUTA-----------------------------
+def pdfDeskargatu(link, izena):
+    global pdfkop
+    global cookie
+    print("*************************"+str(pdfkop+1)+" PDF-a deskargatzen*************************")
+
+    metodoa = 'GET'
+    goiburua = {'Host': link.split('/')[2], 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+
+    file = open("./pdf/" + izena, "wb")
+    file.write(response.content)
+    file.close()
+
+    pdfkop = pdfkop + 1
+
+
+def eskuratuPDF():
+    global uri
+
+    metodoa = 'GET'
+    goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+    orria = BeautifulSoup(response.content, 'html.parser')
+    a_zerrenda = orria.find_all('div', {'class': 'resourceworkaround'})
+    for a in a_zerrenda:
+        link = a.find_all('a')[0]['href']
+        izena = link.split('/')[-1]
+        pdfDeskargatu(link, izena)
+
+
+def eskaera5():
+    global uri
+    global cookie
+
+    metodoa = 'GET'
+    goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+    orria = BeautifulSoup(response.content, 'html.parser')
+    link_zerrenda =  orria.find_all('img', {'class': 'iconlarge activityicon'})
+    for link in link_zerrenda:
+        if '/pdf' in link['src']:
+            uri=link.parent['href']
+            eskuratuPDF()
 
 def printeatuEskaera(metodo, uri, edukia):
     print("\n-----------------------------------------------------------------------\n"
@@ -141,3 +222,6 @@ if __name__== '__main__':
     eskaera2()
     eskaera3()
     eskaera4()
+    print("\n\n-------------------------PDF-ak deskargatzen...-------------------------")
+    eskaera5()
+    print("-------------------------PDF-ak deskargatuta!!!-------------------------")
