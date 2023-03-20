@@ -1,4 +1,5 @@
 import getpass
+import os.path
 import sys
 import urllib
 
@@ -131,41 +132,6 @@ def eskaera4():
 
 
 #--------------------------BEHIN EGELARA SARTUTA-----------------------------
-def pdfDeskargatu(link, izena):
-    global pdfkop
-    global cookie
-    print("*************************"+str(pdfkop+1)+" PDF-a deskargatzen*************************")
-
-    metodoa = 'GET'
-    goiburua = {'Host': link.split('/')[2], 'Cookie': cookie}
-    edukia = ''
-
-    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
-                                allow_redirects=False)
-
-    file = open("./pdf/" + izena, "wb")
-    file.write(response.content)
-    file.close()
-
-    pdfkop = pdfkop + 1
-
-
-def eskuratuPDF():
-    global uri
-
-    metodoa = 'GET'
-    goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
-    edukia = ''
-
-    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
-                                allow_redirects=False)
-    orria = BeautifulSoup(response.content, 'html.parser')
-    a_zerrenda = orria.find_all('div', {'class': 'resourceworkaround'})
-    for a in a_zerrenda:
-        link = a.find_all('a')[0]['href']
-        izena = link.split('/')[-1]
-        pdfDeskargatu(link, izena)
-
 
 def eskaera5():
     global uri
@@ -183,6 +149,51 @@ def eskaera5():
         if '/pdf' in link['src']:
             uri=link.parent['href']
             eskuratuPDF()
+
+
+def eskuratuPDF():
+    global uri
+
+    pdfKarpetaSortu()
+
+    metodoa = 'GET'
+    goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+    orria = BeautifulSoup(response.content, 'html.parser')
+    pdf = orria.find('div', {'class': 'resourceworkaround'})
+
+    link = pdf.a['href']
+    izena = link.split('/')[-1]
+    pdfDeskargatu(link, izena)
+
+
+def pdfDeskargatu(link, izena):
+    global pdfkop
+    global cookie
+    print("*************************"+str(pdfkop+1)+" PDF-a deskargatzen*************************")
+
+    metodoa = 'GET'
+    goiburua = {'Host': link.split('/')[2], 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+    print(str(response.status_code)+" "+response.reason)
+    pdf = response.content
+    file = open("./pdf/" + izena, "wb")
+    file.write(pdf)
+    file.close()
+
+    pdfkop = pdfkop + 1
+
+
+def pdfKarpetaSortu():
+    if not os.path.exists("pdf"):
+        os.mkdir("pdf")
+
 
 def printeatuEskaera(metodo, uri, edukia):
     print("\n-----------------------------------------------------------------------\n"
