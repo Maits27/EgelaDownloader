@@ -1,5 +1,5 @@
 import getpass
-import os.path
+import os
 import sys
 import urllib
 
@@ -163,31 +163,32 @@ def eskuratuPDF():
     response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
                                 allow_redirects=False)
     orria = BeautifulSoup(response.content, 'html.parser')
-    pdf = orria.find('div', {'class': 'resourceworkaround'})
-
-    link = pdf.a['href']
-    izena = link.split('/')[-1]
-    pdfDeskargatu(link, izena)
+    a_zerrenda = orria.find_all('div', {'class': 'resourceworkaround'})
+    for a in a_zerrenda:
+        link = a.find_all('a')[0]['href']
+        izena = link.split('/')[-1]
+        pdfDeskargatu(link, izena)
 
 
 def pdfDeskargatu(link, izena):
     global pdfkop
     global cookie
-    print("*************************"+str(pdfkop+1)+" PDF-a deskargatzen*************************")
+    print("*************************"+str(pdfkop+1)+". PDF-a deskargatzen*************************")
 
     metodoa = 'GET'
     goiburua = {'Host': link.split('/')[2], 'Cookie': cookie}
     edukia = ''
 
-    response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
+    response = requests.request(metodoa, link, headers=goiburua, data=edukia,
                                 allow_redirects=False)
-    print(str(response.status_code)+" "+response.reason)
-    pdf = response.content
+
     file = open("./pdf/" + izena, "wb")
-    file.write(pdf)
+    file.write(response.content)
     file.close()
 
     pdfkop = pdfkop + 1
+
+
 
 
 def pdfKarpetaSortu():
