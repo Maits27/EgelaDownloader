@@ -14,6 +14,8 @@ token = ""
 uri= ""
 pdfkop=0
 
+
+#-----------------------------------------HASIERAKO DATUAK-----------------------------------------
 def datuakEskatu():
     global erabiltzailea
     global izena
@@ -22,7 +24,8 @@ def datuakEskatu():
     if len(sys.argv) == 3:
         erabiltzailea = sys.argv[1]
         izena = sys.argv[2]
-        pasahitza = getpass.getpass("\n-----------------------------------------------------------------------\n"+ izena + " sartu zure pasahitza: ")
+        pasahitza = getpass.getpass("\n-----------------------------------------------------------------------\n"
+                                    + izena + " sartu zure eGela-ko pasahitza: ")
     else:
         print("ERROR! Erabilera: python pdfDownloader.py erabiltzailea \"Izena abizena\"")
         exit(0)
@@ -40,36 +43,35 @@ def lortuIrakasgaiUri(erantzuna):
     kurtso_zerrenda = orria.find_all('a', {'class': 'ehu-visible'})
     aurkitutaWS = False
     irakasgaia = "Web Sistemak"
-    #irakasgaia= irakasgaiaEskatu()
+    #irakasgaia = irakasgaiaEskatu()         #Beste irakasgai baten PDF-ak deskargatu nahi izatekotan
+
     for kurtso in kurtso_zerrenda:
         if irakasgaia.lower() in str(kurtso).lower():
-        #if "Web Sistemak" in kurtso:
             uri = kurtso['href']
-            aurkitutaWS=True
+            aurkitutaWS = True
 
     if not aurkitutaWS:
-        print("EZ DA AURKITU "+irakasgaia+" IRAKASGAIA. Saiatu izen osoa sartzen")
+        print("EZ DA AURKITU " + irakasgaia + " IRAKASGAIA. Saiatu izen osoa sartzen")
         exit(400)
 
 
+#-----------------------------------------LOG-IN EGITEKO ESKAERAK-----------------------------------------
 def eskaera1():
     global token
     global uri
 
     metodoa = 'GET'
     uri = 'https://egela.ehu.eus/login/index.php'
-    # Python "hiztegi" baten moduan adierazten dira goiburuak
     goiburua = {'Host': 'egela.ehu.eus'}
     edukia = ''
 
-    # "requests" liburutegia erabiliko dugu HTTP mezuak kudeatzeko
     response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
                                  allow_redirects=False)
 
     html_fitxategia = response.content
     orria = BeautifulSoup(html_fitxategia, 'html.parser')
-    formularioa= orria.find_all('form', {'class':'m-t-1 ehuloginform'})[0]
-    token=formularioa.find_all('input', {'name':'logintoken'})[0]['value']
+    formularioa= orria.find_all('form', {'class': 'm-t-1 ehuloginform'})[0]
+    token=formularioa.find_all('input', {'name': 'logintoken'})[0]['value']
 
     printeatuEskaera(metodoa, uri, edukia)
     printeatuErantzuna(response)
@@ -80,10 +82,8 @@ def eskaera2():
     global cookie
 
     metodoa = 'POST'
-    # Python "hiztegi" baten moduan adierazten dira goiburuak
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie,
                 'Content-Type': 'application/x-www-form-urlencoded'}
-    # "requests" liburutegia erabiliko dugu HTTP mezuak kudeatzeko
     edukia = {'logintoken': token, 'username': erabiltzailea, 'password': pasahitza}
     edukia_encoded = urllib.parse.urlencode(edukia)
     goiburua['Content-Length'] = str(len(edukia_encoded))
@@ -100,11 +100,9 @@ def eskaera3():
     global cookie
 
     metodoa = 'GET'
-    # Python "hiztegi" baten moduan adierazten dira goiburuak
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
     edukia = ''
 
-    # "requests" liburutegia erabiliko dugu HTTP mezuak kudeatzeko
     response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
                                 allow_redirects=False)
 
@@ -117,11 +115,9 @@ def eskaera4():
     global cookie
 
     metodoa = 'GET'
-    # Python "hiztegi" baten moduan adierazten dira goiburuak
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
     edukia = ''
 
-    # "requests" liburutegia erabiliko dugu HTTP mezuak kudeatzeko
     response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
                                 allow_redirects=False)
 
@@ -131,8 +127,7 @@ def eskaera4():
     lortuIrakasgaiUri(response.content)
 
 
-#--------------------------BEHIN EGELARA SARTUTA-----------------------------
-
+#-----------------------------------------BEHIN EGELARA SARTUTA-----------------------------------------
 def eskaera5():
     global uri
     global cookie
@@ -143,11 +138,13 @@ def eskaera5():
 
     response = requests.request(metodoa, uri, headers=goiburua, data=edukia,
                                 allow_redirects=False)
+
     orria = BeautifulSoup(response.content, 'html.parser')
-    link_zerrenda =  orria.find_all('img', {'class': 'iconlarge activityicon'})
+    link_zerrenda = orria.find_all('img', {'class': 'iconlarge activityicon'})
+
     for link in link_zerrenda:
         if '/pdf' in link['src']:
-            uri=link.parent['href']
+            uri = link.parent['href']
             eskuratuPDF()
 
 
@@ -164,6 +161,7 @@ def eskuratuPDF():
                                 allow_redirects=False)
     orria = BeautifulSoup(response.content, 'html.parser')
     a_zerrenda = orria.find_all('div', {'class': 'resourceworkaround'})
+
     for a in a_zerrenda:
         link = a.find_all('a')[0]['href']
         izena = link.split('/')[-1]
@@ -173,7 +171,8 @@ def eskuratuPDF():
 def pdfDeskargatu(link, izena):
     global pdfkop
     global cookie
-    print("*************************"+str(pdfkop+1)+". PDF-a deskargatzen*************************")
+    print("\n*************************" + str(pdfkop+1) + ". PDF-a deskargatzen*************************\n")
+    print("Deskargatzen ari den PDF-aren link-a:\n" + link)
 
     metodoa = 'GET'
     goiburua = {'Host': link.split('/')[2], 'Cookie': cookie}
@@ -189,8 +188,7 @@ def pdfDeskargatu(link, izena):
     pdfkop = pdfkop + 1
 
 
-
-
+#-----------------------------------------PRINT METODOAK-----------------------------------------
 def pdfKarpetaSortu():
     if not os.path.exists("pdf"):
         os.mkdir("pdf")
@@ -209,31 +207,34 @@ def printeatuErantzuna(response):
     global uri
     kode = str(response.status_code)
     deskripzio = response.reason
+
     if int(kode) // 100 == 3:
         lokazio = response.headers['Location']
         uri=lokazio
     else:
         lokazio = ""
+
     try: c = response.headers['Set-Cookie'].split(";")[0]
     except Exception: c=cookie
     else: cookie=c
 
     print("\nESKAERAREN EGOERA: " + kode + " " + deskripzio +
           "\nCOOKIE: " + c +
-          "\nLOCATION: " + lokazio+
-          "\nTOKEN: " + token)
+          "\nLOCATION: " + lokazio)
 
     if izena in str(response.content):
-        print("\n\n"
-              "SAIOA HASITA "+izena+"!!!!!!!!!!!!!!")
+        print("\n\nSAIOA HASITA "+izena+"!!!")
 
 
 if __name__== '__main__':
     datuakEskatu()
+    print("Login prozesua burutzen:\n")
     eskaera1()
     eskaera2()
     eskaera3()
     eskaera4()
-    print("\n\n-------------------------PDF-ak deskargatzen...-------------------------")
+    input("Orrialdeko PDF-ak deskargatzen hasteko tekla bat sakatu:")
+    print("\n\n-------------------------PDF-ak deskargatzen...-------------------------\n")
     eskaera5()
-    print("-------------------------PDF-ak deskargatuta!!!-------------------------")
+    print("\n-------------------------PDF-ak deskargatuta!!!-------------------------\n")
+    print("PDF-ak /pdf karpetan aurkituko dituzu.")
