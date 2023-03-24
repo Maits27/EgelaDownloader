@@ -51,7 +51,7 @@ def lortuIrakasgaiUri(erantzuna):
             aurkitutaWS = True
 
     if not aurkitutaWS:
-        print("EZ DA AURKITU " + irakasgaia + " IRAKASGAIA. Saiatu izen osoa sartzen")
+        print("EZ DA AURKITU " + irakasgaia + " IRAKASGAIA. ")
         exit(400)
 
 
@@ -171,7 +171,7 @@ def eskuratuPDF():
 def pdfDeskargatu(link, izena):
     global pdfkop
     global cookie
-    print("\n*************************" + str(pdfkop+1) + ". PDF-a deskargatzen*************************\n")
+    print("\n*************************" + str(pdfkop+1) + ". PDF-a deskargatzen*************************")
     print("Deskargatzen ari den PDF-aren link-a:\n" + link)
 
     metodoa = 'GET'
