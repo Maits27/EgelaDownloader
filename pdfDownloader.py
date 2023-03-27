@@ -160,8 +160,6 @@ def eskaera5():
 def eskuratuPDF():
     global uri
 
-    pdfKarpetaSortu()
-
     metodoa = 'GET'
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
     edukia = ''
@@ -251,23 +249,25 @@ def eskaera8():
     izena = orria.find('h2')
     data = orria.find('th', string='Entregatze-data').find_next('td')
 
-    csv_path = Path('Zereginak.csv')
+    csv_path = Path('./csv/Zereginak.csv')
     if csv_path.is_file():
-        with open('Zereginak.csv', 'a') as file:
+        with open('./csv/Zereginak.csv', 'a') as file:
             file.write("Izena: " + str(izena.contents[0]) + '\n')
             file.write("Entregatze data: " + str(data.contents[0]) + '\n')
             file.write("Esteka: " + irakasgaiUri + '\n\n')
     else:
-        with open('Zereginak.csv', 'w') as file:
+        with open('./csv/Zereginak.csv', 'w') as file:
             file.write("Izena: " + str(izena.contents[0])+'\n')
             file.write("Entregatze data: " + str(data.contents[0])+'\n')
             file.write("Esteka: " + irakasgaiUri + '\n\n')
 
 
 #-----------------------------------------PRINT METODOAK-----------------------------------------
-def pdfKarpetaSortu():
+def karpetakSortu():
     if not os.path.exists("pdf"):
         os.mkdir("pdf")
+    if not os.path.exists("csv"):
+        os.mkdir("csv")
 
 
 def printeatuEskaera(metodo, uri, edukia):
@@ -309,7 +309,8 @@ if __name__== '__main__':
     eskaera2()
     eskaera3()
     eskaera4()
-    input("Orrialdeko PDF-ak deskargatzen hasteko tekla bat sakatu:")
+    input("Orrialdeko PDF-ak deskargatzen hasteko enter sakatu:")
+    karpetakSortu()
     print("\n\n-------------------------PDF-ak deskargatzen...-------------------------\n")
     eskaera5()
     print("\n-------------------------PDF-ak deskargatuta!!!-------------------------\n")
