@@ -1,8 +1,9 @@
 import getpass
 import os
 import sys
-import urllib
+from pathlib import Path
 
+import urllib
 import requests
 from bs4 import BeautifulSoup
 
@@ -12,6 +13,7 @@ pasahitza = ""
 cookie = ""
 token = ""
 uri= ""
+irakasgaiUri = ""
 pdfkop=0
 
 
@@ -24,8 +26,7 @@ def datuakEskatu():
     if len(sys.argv) == 3:
         erabiltzailea = sys.argv[1]
         izena = sys.argv[2]
-        pasahitza = getpass.getpass("\n-----------------------------------------------------------------------\n"
-                                    + izena + " sartu zure eGela-ko pasahitza: ")
+        pasahitza = getpass.getpass("\n-----------------------------------------------------------------------\n"+ izena + " sartu zure eGela-ko pasahitza: ")
     else:
         print("ERROR! Erabilera: python pdfDownloader.py erabiltzailea \"Izena abizena\"")
         exit(0)
@@ -38,6 +39,7 @@ def irakasgaiaEskatu():
 
 def lortuIrakasgaiUri(erantzuna):
     global uri
+    global irakasgaiUri
 
     orria = BeautifulSoup(erantzuna, 'html.parser')
     kurtso_zerrenda = orria.find_all('a', {'class': 'ehu-visible'})
@@ -48,6 +50,7 @@ def lortuIrakasgaiUri(erantzuna):
     for kurtso in kurtso_zerrenda:
         if irakasgaia.lower() in str(kurtso).lower():
             uri = kurtso['href']
+            irakasgaiUri=uri
             aurkitutaWS = True
 
     if not aurkitutaWS:
@@ -90,6 +93,12 @@ def eskaera2():
 
     response = requests.request(metodoa, uri, headers=goiburua,  data= edukia,
                                 allow_redirects=False)  # berbidalketak (host, 30x kodedun erantzunak)
+
+    if(response.headers['Location'].__eq__("https://egela.ehu.eus/login/index.php")):
+        print("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("Pasahitza ez da egokia, saiatu zaitez berriro")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        sys.exit(0)
 
     printeatuEskaera(metodoa, uri, edukia)
     printeatuErantzuna(response)
@@ -188,6 +197,73 @@ def pdfDeskargatu(link, izena):
     pdfkop = pdfkop + 1
 
 
+
+#-----------------------------------------CSV SORTU-----------------------------------------
+def eskaera6():
+    global irakasgaiUri
+    global cookie
+
+
+    metodoa = 'GET'
+    goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, irakasgaiUri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+
+    orria = BeautifulSoup(response.content, 'html.parser')
+    lab_praktikak = orria.find_all('a', {'class': 'nav-link', 'title':'Laborategiko praktikak'})
+
+    irakasgaiUri = lab_praktikak[0]['href']
+
+def eskaera7():
+    global irakasgaiUri
+    global cookie
+
+
+    metodoa = 'GET'
+    goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, irakasgaiUri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+
+    orria = BeautifulSoup(response.content, 'html.parser')
+    zerrenda = orria.find_all('img', {'src': 'https://egela.ehu.eus/theme/image.php/ehu/assign/1678718742/icon'})
+
+    for z in zerrenda:
+        if '/icon' in z['src']:
+            irakasgaiUri= z.parent['href']
+            eskaera8()
+
+def eskaera8():
+    global irakasgaiUri
+    global cookie
+
+    metodoa = 'GET'
+    goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
+    edukia = ''
+
+    response = requests.request(metodoa, irakasgaiUri, headers=goiburua, data=edukia,
+                                allow_redirects=False)
+
+    orria = BeautifulSoup(response.content, 'html.parser')
+    izena = orria.find('h2')
+    data = orria.find('th', string='Entregatze-data').find_next('td')
+
+    csv_path = Path('Zereginak.csv')
+    if csv_path.is_file():
+        with open('Zereginak.csv', 'a') as file:
+            file.write("Izena: " + str(izena.contents[0]) + '\n')
+            file.write("Entregatze data: " + str(data.contents[0]) + '\n')
+            file.write("Esteka: " + irakasgaiUri + '\n\n')
+    else:
+        with open('Zereginak.csv', 'w') as file:
+            file.write("Izena: " + str(izena.contents[0])+'\n')
+            file.write("Entregatze data: " + str(data.contents[0])+'\n')
+            file.write("Esteka: " + irakasgaiUri + '\n\n')
+
+
 #-----------------------------------------PRINT METODOAK-----------------------------------------
 def pdfKarpetaSortu():
     if not os.path.exists("pdf"):
@@ -238,3 +314,8 @@ if __name__== '__main__':
     eskaera5()
     print("\n-------------------------PDF-ak deskargatuta!!!-------------------------\n")
     print("PDF-ak /pdf karpetan aurkituko dituzu.")
+    print("\n---------Irakasgaiak dituen laborategi zereginak gordeko dira CSV batean---------\n")
+    eskaera6()
+    eskaera7()
+    print("\n----------------------------Zereginak.csv sortu da!!!----------------------------\n")
+
