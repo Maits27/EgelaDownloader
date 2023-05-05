@@ -211,8 +211,8 @@ def eskaera6():
 
     orria = BeautifulSoup(response.content, 'html.parser')
     lab_praktikak = orria.find_all('a', {'class': 'nav-link', 'title':'Laborategiko praktikak'})
-
     irakasgaiUri = lab_praktikak[0]['href']
+    print("Irakasgai uri ------->  "+irakasgaiUri)
 
 def eskaera7():
     global irakasgaiUri
@@ -227,7 +227,9 @@ def eskaera7():
                                 allow_redirects=False)
 
     orria = BeautifulSoup(response.content, 'html.parser')
-    zerrenda = orria.find_all('img', {'src': 'https://egela.ehu.eus/theme/image.php/ehu/assign/1678718742/icon'})
+
+    #ADI!!! IRUDIA ALDATZEN BADA KODEA EZ DU FUNTZIONATZEN
+    zerrenda = orria.find_all('img', {'src': 'https://egela.ehu.eus/theme/image.php/ehu/assign/1683210168/icon'})
 
     for z in zerrenda:
         if '/icon' in z['src']:
