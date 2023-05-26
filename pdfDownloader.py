@@ -140,6 +140,7 @@ def eskaera4():
 def eskaera5():
     global uri
     global cookie
+    print("Eskaera 5: "+uri)
 
     metodoa = 'GET'
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
@@ -159,6 +160,7 @@ def eskaera5():
 
 def eskuratuPDF():
     global uri
+    print("Eskaera eskuratu pdf: "+ uri)
 
     metodoa = 'GET'
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
@@ -201,6 +203,9 @@ def eskaera6():
     global irakasgaiUri
     global cookie
 
+    print("Eskaera 6: "+irakasgaiUri)
+
+
 
     metodoa = 'GET'
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
@@ -217,6 +222,7 @@ def eskaera6():
 def eskaera7():
     global irakasgaiUri
     global cookie
+    print("Eskaera 7: "+irakasgaiUri)
 
 
     metodoa = 'GET'
@@ -239,6 +245,7 @@ def eskaera7():
 def eskaera8():
     global irakasgaiUri
     global cookie
+    print("Eskaera 8: "+irakasgaiUri)
 
     metodoa = 'GET'
     goiburua = {'Host': 'egela.ehu.eus', 'Cookie': cookie}
